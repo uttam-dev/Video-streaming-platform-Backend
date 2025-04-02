@@ -1,22 +1,23 @@
 {
-  "name": "full-backend",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "uttam prajapati",
-  "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "prettier": "^3.5.3"
-  },
-  "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^5.1.0",
-    "mongoose": "^8.13.1"
-  }
+    "name": "full-backend",
+    "version": "1.0.0",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node -r dotenv/config --experimental-json-modules src/index.js"
+    },
+    "keywords": [],
+    "author": "uttam prajapati",
+    "license": "ISC",
+    "description": "",
+    "devDependencies": {
+        "prettier": "^3.5.3"
+    },
+    "dependencies": {
+        "cookie-parser": "^1.4.7",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "express": "^5.1.0",
+        "mongoose": "^8.13.1"
+    }
 }
