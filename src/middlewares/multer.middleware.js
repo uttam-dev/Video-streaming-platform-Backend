@@ -1,12 +1,12 @@
 import multer from "multer";
 
 const storage = multer.diskStorage({
-    destination: function (res, file, cb) {
+    destination: function (req, file, cb) {
         cb(null, "./public/temp");
     },
     filename: function (req, file, cb) {
-        const prefix = Math.round(Math.random() * 16);
-        cb(null, prefix + "-" + file.filename);
+        const prefix = Math.round(Math.random() * 90000);
+        cb(null, prefix + "-" + file.originalname);
     },
 });
 

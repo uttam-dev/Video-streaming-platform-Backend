@@ -40,22 +40,25 @@ const userSchema = new Schema(
             type: String,
             required: [true, "password is require!"],
         },
+        refreshToken:{
+            type:String
+        }
     },
     { timestamps: true }
 );
 
-Schema.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
     if (this.isModified("password")) {
-        this.password = bcrypt.hash(this.password, 10);
+        this.password = await bcrypt.hash(this.password, 10);
     }
     next();
 });
 
-Schema.methods.isPasswordCorrect = async function (plainString) {
+userSchema.methods.isPasswordCorrect = async function (plainString) {
     return await bcrypt.compare(plainString, this.password);
 };
 
-Schema.methods.genrateAccessToken = function () {
+userSchema.methods.genrateAccessToken = function () {
     return jwt.sign(
         {
             _id: this._id,
@@ -70,7 +73,7 @@ Schema.methods.genrateAccessToken = function () {
     );
 };
 
-Schema.methods.genrateRefreshToken = function () {
+userSchema.methods.genrateRefreshToken = function () {
     return jwt.sign(
         {
             _id: this._id,

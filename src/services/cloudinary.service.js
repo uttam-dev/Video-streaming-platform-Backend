@@ -13,10 +13,10 @@ cloudinary.config({
 const uploadFileOnCloudanary = async function (localFilePath) {
     try {
         if (!localFilePath) return null;
-        const response = await cloudinary.uploader.upload(localFilePath);
-
-        console.log("File uploaded on cloudinary .. ", response);
-
+        const response = await cloudinary.uploader.upload(localFilePath, {
+            asset_folder: "fullBackend",
+        });
+        fs.unlinkSync(localFilePath);
         return response;
     } catch (error) {
         fs.unlinkSync(localFilePath);
@@ -24,4 +24,20 @@ const uploadFileOnCloudanary = async function (localFilePath) {
     }
 };
 
-export { uploadFileOnCloudanary };
+
+
+const deleteFilesOnCloudanary = async (publicIds = [])=>{
+    try{
+        const response = await cloudinary.api.delete_resources(publicIds)
+        if(response.deleted)
+        {
+            return response
+        }else{
+            return null
+        }
+    }
+    catch(error){
+        console.log("Cloudinary error during delation assets : ",error);
+    }
+}
+export { uploadFileOnCloudanary,deleteFilesOnCloudanary };
