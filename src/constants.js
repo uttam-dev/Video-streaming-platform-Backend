@@ -1,3 +1,8 @@
 const DB_NAME = "full-backend";
 
-export default DB_NAME;
+const COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: true,
+};
+
+export { DB_NAME, COOKIE_OPTIONS };
