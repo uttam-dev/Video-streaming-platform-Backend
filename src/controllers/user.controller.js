@@ -9,6 +9,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 import { unlinkFiles } from "../utils/unlinkFiles.js";
 import { COOKIE_OPTIONS } from "../constants.js";
 import JWT from "jsonwebtoken";
+import path from "path";
 
 const genrateAccessTokenAndRefreshToken = async (userId) => {
     try {
@@ -69,10 +70,10 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // upload Files On Cloudanary
-    const avatar = await uploadFileOnCloudanary(avatarLocalPath);
+    const avatar = await uploadFileOnCloudanary(avatarLocalPath,"avatar");
     let coverImage;
     if (coverImageLocalPath) {
-        coverImage = await uploadFileOnCloudanary(coverImageLocalPath);
+        coverImage = await uploadFileOnCloudanary(coverImageLocalPath,"coverImage");
     }
 
     if (!avatar) {
@@ -218,4 +219,127 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         );
 });
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken };
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+
+    const user = User.findById(req.user?._id);
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "invalid old password");
+    }
+
+    user.password = newPassword;
+
+    user.save({ validateBeforeSave: false });
+
+    res.status(200).json(
+        new ApiResponse(200, {}, "password change successfully")
+    );
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+    console.log(req.user);
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, req.user, "current user fetched successfully")
+        );
+});
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    const { fullName, email } = req.body;
+
+    if (!fullName || !email) {
+        throw new ApiError(400, "fullName or email required");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullName,
+                email,
+            },
+        },
+        { new: true }
+    ).select("-password -refreshToken");
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, user, "account details updated successfully")
+        );
+});
+
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path;
+
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "avatar file is missing");
+    }
+
+    const user = await User.findById(req.user?._id).select(
+        "-password -refreshToken"
+    );
+
+    const oldAvatarCloudeneryPath = user.avatar;
+
+    const publicId = path.parse(oldAvatarCloudeneryPath).name;
+
+    const avatar = await uploadFileOnCloudanary(avatarLocalPath,"avatar");
+    
+    if (!avatar?.url) {
+        throw new ApiError(500, "error occure while uploding avtar");
+    }
+
+    user.avatar = avatar.url;
+    user.save();
+
+    await deleteFilesOnCloudanary([publicId]);
+
+    res.status(200).json(new ApiResponse(200, user,"avatar updated successfully"));
+    req.next();
+});
+
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+    const coverImageLocalPath = req.file?.path;
+
+    if (!coverImageLocalPath) {
+        throw new ApiError(400, "cover image file is missing");
+    }
+
+    const user = await User.findById(req.user?._id).select(
+        "-password -refreshToken"
+    );
+
+    const oldCoverImageCloudeneryPath = user.coverImage;
+
+    const publicId = path.parse(oldCoverImageCloudeneryPath).name;
+
+    const coverImage = await uploadFileOnCloudanary(coverImageLocalPath,"coverImage");
+    
+    if (!coverImage?.url) {
+        throw new ApiError(500, "error occure while uploding avtar");
+    }
+
+    user.coverImage = coverImage.url;
+    user.save();
+
+    await deleteFilesOnCloudanary([publicId]);
+
+    res.status(200).json(new ApiResponse(200, user,"cover Image updated successfully"));
+    req.next();
+});
+export {
+    registerUser,
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage
+};
