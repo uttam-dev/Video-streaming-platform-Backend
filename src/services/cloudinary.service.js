@@ -10,11 +10,11 @@ cloudinary.config({
 });
 
 // Upload an image
-const uploadFileOnCloudanary = async function (localFilePath) {
+const uploadFileOnCloudanary = async function (localFilePath,dirName="") {
     try {
         if (!localFilePath) return null;
         const response = await cloudinary.uploader.upload(localFilePath, {
-            asset_folder: "fullBackend",
+            asset_folder: "fullBackend/"+dirName,
         });
         fs.unlinkSync(localFilePath);
         return response;
