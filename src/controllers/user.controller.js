@@ -10,6 +10,7 @@ import { unlinkFiles } from "../utils/unlinkFiles.js";
 import { COOKIE_OPTIONS } from "../constants.js";
 import JWT from "jsonwebtoken";
 import path from "path";
+import mongoose from "mongoose";
 
 const genrateAccessTokenAndRefreshToken = async (userId) => {
     try {
@@ -70,10 +71,13 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // upload Files On Cloudanary
-    const avatar = await uploadFileOnCloudanary(avatarLocalPath,"avatar");
+    const avatar = await uploadFileOnCloudanary(avatarLocalPath, "avatar");
     let coverImage;
     if (coverImageLocalPath) {
-        coverImage = await uploadFileOnCloudanary(coverImageLocalPath,"coverImage");
+        coverImage = await uploadFileOnCloudanary(
+            coverImageLocalPath,
+            "coverImage"
+        );
     }
 
     if (!avatar) {
@@ -288,8 +292,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
     const publicId = path.parse(oldAvatarCloudeneryPath).name;
 
-    const avatar = await uploadFileOnCloudanary(avatarLocalPath,"avatar");
-    
+    const avatar = await uploadFileOnCloudanary(avatarLocalPath, "avatar");
+
     if (!avatar?.url) {
         throw new ApiError(500, "error occure while uploding avtar");
     }
@@ -299,7 +303,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
     await deleteFilesOnCloudanary([publicId]);
 
-    res.status(200).json(new ApiResponse(200, user,"avatar updated successfully"));
+    res.status(200).json(
+        new ApiResponse(200, user, "avatar updated successfully")
+    );
     req.next();
 });
 
@@ -318,8 +324,11 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
     const publicId = path.parse(oldCoverImageCloudeneryPath).name;
 
-    const coverImage = await uploadFileOnCloudanary(coverImageLocalPath,"coverImage");
-    
+    const coverImage = await uploadFileOnCloudanary(
+        coverImageLocalPath,
+        "coverImage"
+    );
+
     if (!coverImage?.url) {
         throw new ApiError(500, "error occure while uploding avtar");
     }
@@ -329,8 +338,135 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
     await deleteFilesOnCloudanary([publicId]);
 
-    res.status(200).json(new ApiResponse(200, user,"cover Image updated successfully"));
+    res.status(200).json(
+        new ApiResponse(200, user, "cover Image updated successfully")
+    );
     req.next();
+});
+
+const getUserChennelProfile = asyncHandler(async (req, res) => {
+    const username = req.params;
+
+    if (!username?.trim()) {
+        throw new ApiError(404, "username are missing");
+    }
+
+    const channel = await User.aggregate([
+        {
+            $match: {
+                username: username?.toLowerCase(),
+            },
+        },
+        {
+            lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscribers",
+            },
+        },
+        {
+            lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscribers",
+                as: "subscribedTo",
+            },
+        },
+        {
+            $addFields: {
+                subscribersCount: {
+                    $size: "$subscribers",
+                },
+                channelSubscribeToCount: {
+                    $size: "$subscribedTo",
+                },
+                isSubscribed: {
+                    $cond: {
+                        if: {
+                            $in: [req.user?._id, "$subscribers.subscribers"],
+                        },
+                        then: true,
+                        else: false,
+                    },
+                },
+            },
+        },
+        {
+            $project: {
+                username: 1,
+                fullName: 1,
+                email: 1,
+                avatar: 1,
+                coverImage: 1,
+                subscribersCount: 1,
+                channelSubscribeToCount: 1,
+                isSubscribed: 1,
+            },
+        },
+    ]);
+
+    if (!channel.length) {
+        throw new ApiError(404, "channel does not exist");
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                channel[0],
+                "user channel fetched successfully"
+            )
+        );
+});
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+    const user = User.aggregate([
+        {
+            $match: { _id: new mongoose.Types.ObjectId(req.user?._id) },
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipline: [
+                                {
+                                    $project: {
+                                        fullName: 1,
+                                        avatar: 1,
+                                        username: 1,
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        $addFields: {
+                            owner: {
+                                $first: "$owner",
+                            },
+                        },
+                    },
+                ],
+            },
+        },
+    ]);
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, user[0], "watch history fetched successfully")
+        );
 });
 export {
     registerUser,
@@ -341,5 +477,6 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    getUserChennelProfile,
 };
