@@ -1,0 +1,336 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+    --dark-bg: #121212;
+    --sidebar-bg: #1A1A1A;
+    --text-color: #E0E0E0;
+    --light-text-color: #AAAAAA;
+    --accent-color: #BB86FC; /* A purple tone for highlights */
+    --button-bg: #282828;
+    --border-color: #333333;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    display: flex;
+    overflow: hidden; /* Hide overflow for the whole body */
+}
+
+.container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-bg);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid var(--border-color);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 0 20px 20px;
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.sidebar-header .material-icons {
+    font-size: 2em;
+    margin-right: 10px;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar-nav li, .sidebar-footer li {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: var(--text-color);
+}
+
+.sidebar-nav li:hover, .sidebar-footer li:hover {
+    background-color: var(--button-bg);
+}
+
+.sidebar-nav li.active {
+    background-color: var(--button-bg);
+    color: var(--accent-color);
+}
+
+.sidebar-nav li .material-icons, .sidebar-footer li .material-icons {
+    margin-right: 15px;
+    font-size: 1.4em;
+    color: var(--light-text-color);
+}
+
+.sidebar-nav li.active .material-icons {
+    color: var(--accent-color);
+}
+
+.sidebar-footer {
+    margin-top: auto; /* Pushes the footer to the bottom */
+}
+
+.sidebar-footer ul {
+    list-style: none;
+    padding: 0;
+    border-top: 1px solid var(--border-color);
+    padding-top: 10px;
+}
+
+/* Main Content Styling */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--dark-bg);
+    overflow-y: auto; /* Enable scrolling for main content */
+}
+
+/* Navbar Styling */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background-color: var(--dark-bg);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: var(--button-bg);
+    border-radius: 20px;
+    padding: 8px 15px;
+    width: 400px;
+}
+
+.search-bar .search-icon {
+    color: var(--light-text-color);
+    margin-right: 10px;
+}
+
+.search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-color);
+    flex-grow: 1;
+    font-size: 1em;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+}
+
+.nav-right .material-icons {
+    color: var(--light-text-color);
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.log-in-btn, .sign-up-btn {
+    background: none;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-left: 10px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.sign-up-btn {
+    background-color: var(--accent-color);
+    color: var(--dark-bg);
+}
+
+.log-in-btn:hover {
+    background-color: rgba(var(--accent-color), 0.1);
+}
+.sign-up-btn:hover {
+    opacity: 0.9;
+}
+
+
+/* Profile Header */
+.profile-header {
+    position: relative;
+    width: 100%;
+}
+
+.profile-banner {
+    width: 100%;
+    height: 200px; /* Adjust as needed */
+    background: linear-gradient(to right, #4A00E0, #8E2DE2); /* Example gradient */
+    /* You could also use background-image here if you had an image */
+    background-size: cover;
+    background-position: center;
+}
+
+.profile-info-section {
+    display: flex;
+    align-items: flex-end; /* Align items to the bottom */
+    padding: 0 30px 20px;
+    margin-top: -60px; /* Pull up to overlap banner */
+    position: relative;
+    z-index: 5;
+    gap: 20px;
+}
+
+.profile-pic {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--dark-bg); /* Border around profile pic */
+    object-fit: cover;
+    background-color: #ccc; /* Placeholder background */
+}
+
+.profile-details {
+    flex-grow: 1;
+}
+
+.profile-details h1 {
+    font-size: 2em;
+    margin-bottom: 5px;
+}
+
+.profile-details .username {
+    color: var(--light-text-color);
+    font-size: 1em;
+    margin-bottom: 5px;
+}
+
+.profile-details .stats {
+    color: var(--light-text-color);
+    font-size: 0.9em;
+}
+
+.follow-btn {
+    background-color: var(--accent-color);
+    color: var(--dark-bg);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: opacity 0.2s;
+}
+
+.follow-btn:hover {
+    opacity: 0.9;
+}
+
+/* Profile Navigation (Videos, Playlist etc.) */
+.profile-nav {
+    border-bottom: 1px solid var(--border-color);
+    margin-top: 20px;
+    padding: 0 30px;
+}
+
+.profile-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+}
+
+.profile-nav li {
+    padding: 10px 0;
+    cursor: pointer;
+    color: var(--light-text-color);
+    position: relative;
+}
+
+.profile-nav li.active {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.profile-nav li.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--accent-color);
+}
+
+/* Video Grid */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 30px;
+}
+
+.video-card {
+    background-color: var(--sidebar-bg); /* Slightly lighter than main bg */
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.video-card:hover {
+    transform: translateY(-5px);
+}
+
+.video-card img {
+    width: 100%;
+    height: 170px; /* Fixed height for thumbnails */
+    object-fit: cover;
+    display: block;
+}
+
+.video-details {
+    padding: 15px;
+}
+
+.video-details h3 {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+    color: var(--text-color);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limit to 2 lines */
+    -webkit-box-orient: vertical;
+}
+
+.video-details p {
+    font-size: 0.9em;
+    color: var(--light-text-color);
+}

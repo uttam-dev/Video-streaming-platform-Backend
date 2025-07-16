@@ -64,6 +64,11 @@ router
     .route("/update/coverImage")
     .post(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
 
+// User profile route
+router.route("/profile").get((req, res) => {
+    res.render("channelProfile");
+});
+
 // TESTING ROUTES **************************************
 //test
 router.route("/auth/test").post(verifyJWT, (req, res) => {
