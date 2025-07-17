@@ -10,34 +10,44 @@ cloudinary.config({
 });
 
 // Upload an image
-const uploadFileOnCloudanary = async function (localFilePath,dirName="") {
+const uploadFileOnCloudanary = async function (localFilePath, dirName = "") {
     try {
         if (!localFilePath) return null;
+
         const response = await cloudinary.uploader.upload(localFilePath, {
-            asset_folder: "fullBackend/"+dirName,
+            folder: `fullBackend/${dirName}`,
+            public_id: Date.now(),
+            resource_type: "auto",
         });
-        fs.unlinkSync(localFilePath);
+        if (fs.existsSync(localFilePath)) {
+            fs.unlinkSync(localFilePath);
+        }
         return response;
     } catch (error) {
-        fs.unlinkSync(localFilePath);
+        if (fs.existsSync(localFilePath)) {
+            fs.unlinkSync(localFilePath);
+        }
+        console.log(error);
+
         return null;
     }
 };
 
-
-
-const deleteFilesOnCloudanary = async (publicIds = [])=>{
-    try{
-        const response = await cloudinary.api.delete_resources(publicIds)
-        if(response.deleted)
-        {
-            return response
-        }else{
-            return null
+const deleteFilesOnCloudanary = async (
+    publicIds = [],
+    resource_type = "image"
+) => {
+    try {
+        const response = await cloudinary.api.delete_resources(publicIds, {
+            resource_type,
+        });
+        if (response.deleted) {
+            return response;
+        } else {
+            return null;
         }
+    } catch (error) {
+        console.log("Cloudinary error during delation assets : ", error);
     }
-    catch(error){
-        console.log("Cloudinary error during delation assets : ",error);
-    }
-}
-export { uploadFileOnCloudanary,deleteFilesOnCloudanary };
+};
+export { uploadFileOnCloudanary, deleteFilesOnCloudanary };
