@@ -20,14 +20,18 @@ app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, "..", "public"))); // Corrected path for static files
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "ejs");
 
 //routes
 import userRoute from "./routes/user.routes.js";
+import videoRoute from "./routes/video.routes.js";
+
 app.use("/user", userRoute);
+
 app.use("/api/v1/user", userRoute);
+app.use("/api/v1/video", videoRoute);
 
 export default app;
