@@ -31,7 +31,7 @@ const genrateAccessTokenAndRefreshToken = async (userId) => {
     }
 };
 const registerUser = asyncHandler(async (req, res,next) => {
-    const { username, fullName, email, password } = req.body;
+    const { username, fullName, email, password } = req.body || {};
 
     //validation-----------------
     if (

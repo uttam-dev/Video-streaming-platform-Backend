@@ -21,7 +21,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
     }
 
     let user;
-    
+
     try {
         user = await User.findById(decodedToken?._id).select(
             "-password -refreshToken"
@@ -31,7 +31,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
     }
 
     if (!user) {
-        throw new ApiError(401, error?.message || "invalid access token");
+        throw new ApiError(401, "user does not exist");
     }
 
     req.user = user;

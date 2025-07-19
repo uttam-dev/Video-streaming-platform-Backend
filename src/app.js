@@ -22,10 +22,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, "..", "public")));
 
-app.set('views', path.join(__dirname, 'views'));
+app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 //routes
+import { errorHandler } from "./middlewares/error.middleware.js";
 import userRoute from "./routes/user.routes.js";
 import videoRoute from "./routes/video.routes.js";
 
@@ -34,4 +35,5 @@ app.use("/user", userRoute);
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/video", videoRoute);
 
+// app.use(errorHandler);
 export default app;
