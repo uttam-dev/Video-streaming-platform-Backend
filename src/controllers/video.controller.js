@@ -12,11 +12,13 @@ import path from "path";
 
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-    //TODO: get all videos based on query, sort, pagination
+
+    
+
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    const { title, description } = req.body;
+    const { title, description } = req.body || {};
 
     // title and description validation
     if (!title || !description) {
@@ -90,7 +92,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
             title,
             description,
             duration: videoFileCloudinary.duration,
-            owener: req.user._id,
+            owner: req.user._id,
         });
     } catch (error) {
         deleteFilesOnCloudanary([videoFileCloudinary.public_id], "video");
@@ -111,7 +113,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 });
 
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoId } = req.params;
+    const { videoId } = req.params || {};
 
     if (!videoId) {
         throw new ApiError(400, "video id not provided!");
@@ -134,8 +136,8 @@ const getVideoById = asyncHandler(async (req, res) => {
     );
 });
 
-const updateVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params;
+const updateVideo = asyncHandler(async (req, res,next) => {
+    const { videoId } = req.params || {};
     console.log(req.body);
 
     const { title, description } = req.body || {};
@@ -168,10 +170,63 @@ const updateVideo = asyncHandler(async (req, res) => {
     );
 });
 
-const updateThumbnail = asyncHandler(async (req, res) => {});
+const updateThumbnail = asyncHandler(async (req, res) => {
+    const { videoId } = req.params || {};
+
+    const  thumbnail  = req.file || {};
+    
+    if (!videoId) {
+        unlinkFiles(req)
+        throw new ApiError(400, "video id not found");
+    }
+    
+    if (!thumbnail) {
+        unlinkFiles(req)
+        throw new ApiError(400, "new thumbnail is required");
+    }
+    
+    if (!isImageFile(thumbnail)) {
+        unlinkFiles(req)
+        throw new ApiError(400, "invalid thumbnail extension");
+    }
+    const video = await Video.findById(videoId);
+    
+    if (!video) {
+        unlinkFiles(req)
+        throw new ApiError(400, "invalid video id");
+    }
+    
+    const oldThumbnail_public_id = video.thumbnail_public_id;
+    
+    const newThumbnail = await uploadFileOnCloudanary(thumbnail.path,`user/${req.user._id}/thumbnails`);
+    
+    console.log(newThumbnail);
+    
+    if(!newThumbnail?.url){
+        unlinkFiles(req)
+        throw new ApiError(500,"error occure during upload thumnnail")
+    }
+
+    video.thumbnail = newThumbnail.url;
+    video.thumbnail_public_id = newThumbnail.public_id;
+    video.save();
+    
+    await deleteFilesOnCloudanary(oldThumbnail_public_id);
+    
+    unlinkFiles(req)
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            video.thumbnail,
+            "thumbnail updated successfully"
+        )
+    );
+});
 
 const deleteVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params;
+    const { videoId } = req.params || {};
 
     if (!videoId) {
         throw new ApiError(400, "video id required");
@@ -207,7 +262,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
-    const { videoId } = req.params;
+    const { videoId } = req.params || {};
 
     if (!videoId) {
         throw new ApiError(400, "video id must required");
