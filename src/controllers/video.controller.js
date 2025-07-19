@@ -1,6 +1,7 @@
 import { ApiError } from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { mongoose } from "mongoose";
 import { unlinkFiles } from "../utils/unlinkFiles.js";
 import {
     deleteFilesOnCloudanary,
@@ -11,10 +12,85 @@ import { isVideoFile, isImageFile } from "../utils/fileFormates.js";
 import path from "path";
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+    let {
+        page = 1,
+        limit = 10,
+        query,
+        sortBy,
+        sortType,
+        userId,
+    } = req.query || {};
 
-    
+    if (isNaN(page) || isNaN(limit)) {
+        throw new ApiError(400, "invalid parameters");
+    } else {
+        page = parseInt(page);
+        limit = parseInt(limit);
+    }
 
+    // make video pipeline obj
+    const video = Video.aggregate();
+
+    // query
+
+    if (query && query.trim()) {
+        video.pipeline().push({
+            $search: {
+                index: "default",
+                autocomplete: {
+                    query: query,
+                    path: "title",
+                },
+            },
+        });
+    }
+
+    // match stage for get data based on userid if provided
+    let matchOperation = {};
+    if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+        matchOperation = { owner: new mongoose.Types.ObjectId(userId) };
+    }
+
+    // sortBy
+    if (!["createdAt", "title"].includes(sortBy)) {
+        sortBy = "createdAt";
+    }
+
+    // sortType
+    if (!sortType || sortType.toLowerCase() != "dec") {
+        sortType = 1;
+    } else {
+        sortType = -1;
+    }
+
+    //
+    video.pipeline().push(
+        { $match: { isPublished: true } },
+        { $match: matchOperation },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                    {
+                        $project: {
+                            fullName: 1,
+                            avatar: 1,
+                            username: 1,
+                        },
+                    },
+                ],
+            },
+        },
+        { $sort: { [sortBy]: sortType } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit }
+    );
+
+    const data = await video.exec();
+    res.json(data);
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
@@ -136,7 +212,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     );
 });
 
-const updateVideo = asyncHandler(async (req, res,next) => {
+const updateVideo = asyncHandler(async (req, res, next) => {
     const { videoId } = req.params || {};
     console.log(req.body);
 
@@ -173,56 +249,59 @@ const updateVideo = asyncHandler(async (req, res,next) => {
 const updateThumbnail = asyncHandler(async (req, res) => {
     const { videoId } = req.params || {};
 
-    const  thumbnail  = req.file || {};
-    
+    const thumbnail = req.file || {};
+
     if (!videoId) {
-        unlinkFiles(req)
+        unlinkFiles(req);
         throw new ApiError(400, "video id not found");
     }
-    
+
     if (!thumbnail) {
-        unlinkFiles(req)
+        unlinkFiles(req);
         throw new ApiError(400, "new thumbnail is required");
     }
-    
+
     if (!isImageFile(thumbnail)) {
-        unlinkFiles(req)
+        unlinkFiles(req);
         throw new ApiError(400, "invalid thumbnail extension");
     }
     const video = await Video.findById(videoId);
-    
+
     if (!video) {
-        unlinkFiles(req)
+        unlinkFiles(req);
         throw new ApiError(400, "invalid video id");
     }
-    
+
     const oldThumbnail_public_id = video.thumbnail_public_id;
-    
-    const newThumbnail = await uploadFileOnCloudanary(thumbnail.path,`user/${req.user._id}/thumbnails`);
-    
+
+    const newThumbnail = await uploadFileOnCloudanary(
+        thumbnail.path,
+        `user/${req.user._id}/thumbnails`
+    );
+
     console.log(newThumbnail);
-    
-    if(!newThumbnail?.url){
-        unlinkFiles(req)
-        throw new ApiError(500,"error occure during upload thumnnail")
+
+    if (!newThumbnail?.url) {
+        unlinkFiles(req);
+        throw new ApiError(500, "error occure during upload thumnnail");
     }
 
     video.thumbnail = newThumbnail.url;
     video.thumbnail_public_id = newThumbnail.public_id;
     video.save();
-    
+
     await deleteFilesOnCloudanary(oldThumbnail_public_id);
-    
-    unlinkFiles(req)
+
+    unlinkFiles(req);
     return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            video.thumbnail,
-            "thumbnail updated successfully"
-        )
-    );
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                video.thumbnail,
+                "thumbnail updated successfully"
+            )
+        );
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {

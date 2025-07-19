@@ -5,6 +5,8 @@ import {
     logoutUser,
     refreshAccessToken,
     getCurrentUser,
+    getUserChannelProfile,
+    getWatchHistory,
     changeCurrentPassword,
     updateAccountDetails,
     updateUserAvatar,
@@ -46,6 +48,13 @@ router.route("/auth/refresh-token").post(refreshAccessToken);
 //get current user
 router.route("/current-user").post(verifyJWT, getCurrentUser);
 
+// User profile route
+router.route("/profile/:username").get(verifyJWT,getUserChannelProfile);
+
+//watchHistory route
+router.route("/watchHistory").get(verifyJWT,getWatchHistory);
+
+
 // UPDATE ROUTES ***************************************
 
 // update current password to new password
@@ -63,11 +72,6 @@ router
 router
     .route("/update/coverImage")
     .post(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
-
-// User profile route
-router.route("/profile").get((req, res) => {
-    res.render("channelProfile");
-});
 
 // TESTING ROUTES **************************************
 //test

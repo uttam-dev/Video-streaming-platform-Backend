@@ -30,7 +30,7 @@ const genrateAccessTokenAndRefreshToken = async (userId) => {
         );
     }
 };
-const registerUser = asyncHandler(async (req, res,next) => {
+const registerUser = asyncHandler(async (req, res, next) => {
     const { username, fullName, email, password } = req.body || {};
 
     //validation-----------------
@@ -344,11 +344,13 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     req.next();
 });
 
-const getUserChennelProfile = asyncHandler(async (req, res) => {
-    const username = req.params;
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+    const { username } = req.params || null;
 
-    if (!username?.trim()) {
-        throw new ApiError(404, "username are missing");
+    console.log(username);
+    
+    if (!username || !username.trim()) {
+        throw new ApiError(404, "username is missing");
     }
 
     const channel = await User.aggregate([
@@ -358,7 +360,7 @@ const getUserChennelProfile = asyncHandler(async (req, res) => {
             },
         },
         {
-            lookup: {
+            $lookup: {
                 from: "subscriptions",
                 localField: "_id",
                 foreignField: "channel",
@@ -366,7 +368,7 @@ const getUserChennelProfile = asyncHandler(async (req, res) => {
             },
         },
         {
-            lookup: {
+            $lookup: {
                 from: "subscriptions",
                 localField: "_id",
                 foreignField: "subscribers",
@@ -475,8 +477,9 @@ export {
     refreshAccessToken,
     changeCurrentPassword,
     getCurrentUser,
+    getUserChannelProfile,
+    getWatchHistory,
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
-    getUserChennelProfile,
 };
