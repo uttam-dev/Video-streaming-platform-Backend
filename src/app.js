@@ -29,11 +29,13 @@ app.set("view engine", "ejs");
 import { errorHandler } from "./middlewares/error.middleware.js";
 import userRoute from "./routes/user.routes.js";
 import videoRoute from "./routes/video.routes.js";
+import tweetRoute from "./routes/tweet.routes.js";
 
 app.use("/user", userRoute);
 
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/video", videoRoute);
+app.use("/api/v1/tweet", tweetRoute);
 
 // app.use(errorHandler);
 export default app;
