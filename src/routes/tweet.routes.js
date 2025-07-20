@@ -5,10 +5,13 @@ import {
     updateTweet,
     deleteTweet,
 } from "../controllers/tweet.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
-router.route("/").post(createTweet).get(getUserTweets);
+router.use(verifyJWT);
+router.route("/").post(upload.single("image"),createTweet).get(getUserTweets);
 
 router.route("/:tweetId").patch(updateTweet).delete(deleteTweet);
 
