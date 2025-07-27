@@ -26,14 +26,12 @@ const toggleSubscription = asyncHandler(async (req, res) => {
         },
     ]);
 
-    console.log("aggre", subscription);
-
     if (subscription.length > 0) {
         subscription = await Subscription.findByIdAndDelete(
             subscription[0]._id,
             { new: true }
-        );
-        console.log("deleted", subscription);
+        ).lean();
+        subscription.currentSubscribedStatus = false;
     } else {
         subscription = await Subscription.create([
             {
@@ -42,7 +40,8 @@ const toggleSubscription = asyncHandler(async (req, res) => {
             },
         ]);
 
-        console.log("created", subscription);
+        subscription = JSON.parse(JSON.stringify(subscription));
+        subscription[0].currentSubscribedStatus = true;
     }
 
     if (!subscription) {
@@ -62,16 +61,40 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         throw new ApiError(400, "invalid channel id");
     }
 
-    const subscribers = await Subscription.find({ channel: channelId });
+    const subscribers = await Subscription.countDocuments({
+        channel: channelId,
+    });
 
-    return res.status(200).json(new ApiResponse({
-        
-    }))
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { subscribers: subscribers },
+                "subscribers fetched successfully"
+            )
+        );
 });
 
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-    const { subscriberId } = req.params;
+    const { channelId } = req.params || {};
+
+    if (!channelId || !mongoose.Types.ObjectId.isValid(channelId)) {
+        throw new ApiError(400, "invalid channel id");
+    }
+
+    const subscribers = await Subscription.find({ subscribers: channelId });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                subscribers,
+                "subscribers fetched successfully"
+            )
+        );
 });
 
 export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };
