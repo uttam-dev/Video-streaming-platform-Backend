@@ -31,6 +31,7 @@ import userRoute from "./routes/user.routes.js";
 import videoRoute from "./routes/video.routes.js";
 import tweetRoute from "./routes/tweet.routes.js";
 import subscriptionRoute from "./routes/subscription.routes.js";
+import playlistRoute from "./routes/playlist.routes.js";
 
 app.use("/user", userRoute);
 
@@ -38,6 +39,7 @@ app.use("/api/v1/user", userRoute);
 app.use("/api/v1/video", videoRoute);
 app.use("/api/v1/tweet", tweetRoute);
 app.use("/api/v1/subscription", subscriptionRoute);
+app.use("/api/v1/playlist", playlistRoute);
 
 // app.use(errorHandler);
 export default app;
