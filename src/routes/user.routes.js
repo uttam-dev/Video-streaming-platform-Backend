@@ -73,10 +73,4 @@ router
     .route("/update/coverImage")
     .post(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
 
-// TESTING ROUTES **************************************
-//test
-router.route("/auth/test").post(verifyJWT, (req, res) => {
-    res.end("Access !!!!!!!!");
-});
-
 export default router;
