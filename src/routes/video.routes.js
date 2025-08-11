@@ -45,8 +45,5 @@ router
 
 router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
 
-router.route("/test-error").post((req,res)=>{
-   res.setHeader("Content-Type", "application/json");
-    throw new ApiError(400, "This is a test error");
-})
+
 export default router;
